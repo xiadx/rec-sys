@@ -1,24 +1,30 @@
 package container;
 
-public class CustomArrayListIII<E> {
+public class CustomArrayListIV<E> {
 
     private Object[] elementData;
     private int size;
 
     private static final int DEFAULT_CAPACITY = 10;
 
-    public CustomArrayListIII() {
+    public CustomArrayListIV() {
         elementData = new Object[DEFAULT_CAPACITY];
     }
 
-    public CustomArrayListIII(int capacity) {
+    public CustomArrayListIV(int capacity) {
         if (capacity < 0) {
             throw new RuntimeException("capacity parameter error");
         } else if (capacity == 0) {
             elementData = new Object[DEFAULT_CAPACITY];
-        } else {
-            elementData = new Object[capacity];
         }
+    }
+
+    public int size() {
+        return size;
+    }
+
+    public boolean isEmpty() {
+        return size == 0 ? true : false;
     }
 
     public void add(E e) {
@@ -30,20 +36,29 @@ public class CustomArrayListIII<E> {
         elementData[size++] = e;
     }
 
-    public void set(E e, int index) {
-        checkRange(index);
-        elementData[index] = e;
-    }
-
     public E get(int index) {
         checkRange(index);
         return (E)elementData[index];
+    }
+
+    public void set(E e, int index) {
+        checkRange(index);
+        elementData[index] = e;
     }
 
     public void checkRange(int index) {
         if (index < 0 || index > size - 1) {
             throw new RuntimeException("index parameter error");
         }
+    }
+
+    public void remove(int index) {
+        checkRange(index);
+        int n = elementData.length - index - 1;
+        if (n > 0) {
+            System.arraycopy(elementData, index + 1, elementData, index, n);
+        }
+        elementData[--size] = null;
     }
 
     @Override
@@ -58,14 +73,17 @@ public class CustomArrayListIII<E> {
     }
 
     public static void main(String[] args) {
-        CustomArrayListIII<String> l = new CustomArrayListIII<String>();
+        CustomArrayListIV<String> l = new CustomArrayListIV<String>();
         for (int i = 0; i < 40; i++) {
             l.add("" + i);
         }
-        System.out.println(l);
-        l.set("11", 10);
+        l.set("10", 11);
         System.out.println(l);
         System.out.println(l.get(10));
+        l.remove(3);
+        System.out.println(l.size());
+        System.out.println(l.isEmpty());
+        System.out.println(l);
     }
 
 }
