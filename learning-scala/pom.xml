@@ -11,5 +11,14 @@
 
     <artifactId>learning-scala</artifactId>
 
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.scala-lang/scala-actors -->
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-actors</artifactId>
+            <version>2.11.8</version>
+        </dependency>
+    </dependencies>
+
 
 </project>
