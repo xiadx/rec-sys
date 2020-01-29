@@ -13,7 +13,6 @@
         <module>learning-java</module>
         <module>learning-spark</module>
         <module>learning-flink</module>
-        <module>learning-python</module>
         <module>rec-recall</module>
         <module>rec-rank</module>
     </modules>
