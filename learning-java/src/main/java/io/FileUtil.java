@@ -79,6 +79,10 @@ public class FileUtil {
             if (null != os) {
                 os.close();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
             if (null != is) {
                 is.close();
             }

@@ -40,6 +40,10 @@ public class CopyDemoIII {
                 if (null != bw) {
                     bw.close();
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
                 if (null != br) {
                     br.close();
                 }

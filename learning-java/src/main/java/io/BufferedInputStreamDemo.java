@@ -47,6 +47,10 @@ public class BufferedInputStreamDemo {
                 if (null != is) {
                     is.close();
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
                 if (null != bis) {
                     bis.close();
                 }

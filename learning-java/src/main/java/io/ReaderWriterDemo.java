@@ -28,6 +28,10 @@ public class ReaderWriterDemo {
                 if (null != writer) {
                     writer.close();
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
                 if (null != reader) {
                     reader.close();
                 }
