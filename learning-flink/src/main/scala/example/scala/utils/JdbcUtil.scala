@@ -1,6 +1,5 @@
-package utils.scala
+package example.scala.utils
 
-import java.util.Properties
 import java.sql._
 
 object JdbcUtil {

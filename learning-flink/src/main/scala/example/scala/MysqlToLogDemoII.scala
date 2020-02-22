@@ -2,12 +2,11 @@ package example.scala
 
 import java.sql.ResultSet
 
+import example.scala.utils.JdbcUtil
 import org.apache.flink.streaming.api.functions.sink.SinkFunction
 import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
 
 import scala.collection.mutable
-
-import utils.scala.JdbcUtil
 
 object MysqlToLogDemoII {
 
