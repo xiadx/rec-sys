@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
+"""lightgbm model train"""
+
+
+from __future__ import division
+import lightgbm as lgb
+from preprocessing import *
+
+
+def auc(y_true, y_pred):
+    """
+    calculate auc
+    Args:
+        y_true: label
+        y_pred: predict
+    Return:
+        auc
+    """
+    l = [(i, t[0], t[1]) for i, t in enumerate(sorted(zip(y_true, y_pred), key=lambda x: x[1]))]
+    # p = sum([x[1] for x in l])
+    # n = len(l) - p
+    # t = sum([x[0] for x in l if x[1] == 1])
+    n, p, t = 0, 0, 0
+    for i, y, r in l:
+        if y == 0:
+            n += 1
+        else:
+            p += 1
+            t += i
+    return (t-(p*(p+1)/2)) / (n*p)
+
+
+def acc(y_true, y_pred):
+    """
+    calculate acc
+    Args:
+        y_true: label
+        y_pred: predict
+    Return:
+        acc
+    """
+    return sum(1 for i in range(len(y_pred)) if int(y_pred[i] >= 0.5) == y_true[i]) / len(y_pred)
+
+
+def train(path, param, model):
+    """
+    xgboost model train
+    Args:
+        path: file path
+        param: model parameter
+        model: model file
+    """
+    t = load(path, np.float64, ",")
+    y_train = t[:, 0]
+    X_train = t[:, 1:]
+    lgb_train = lgb.Dataset(X_train, y_train)
+    gbm = lgb.train(param, lgb_train)
+    gbm.save_model(model)
+
+
+def test(path, model):
+    """
+    xgboost model test
+    Args:
+        path: file path
+        model: model file
+    """
+    t = load(path, np.float64, ",")
+    y_test = t[:, 0]
+    X_test = t[:, 1:]
+    gbm = lgb.Booster(model_file=model)
+    y_pred = gbm.predict(X_test)
+
+    print "+" * 50
+    print acc(y_test, y_pred)
+    print auc(y_test, y_pred)
+    print "+" * 50
+
+
+def main():
+    param = {
+        'boosting_type': 'gbdt',
+        'objective': 'binary',
+        'metric': {'l2', 'l1'},
+        'num_leaves': 31,
+        'learning_rate': 0.05,
+        'feature_fraction': 0.9,
+        'bagging_fraction': 0.8,
+        'bagging_freq': 5,
+        'verbose': 0,
+        'num_boost_round': 100
+    }
+    train("train.data", param, "lgb.model")
+    test("test.data", "lgb.model")
+
+
+if __name__ == "__main__":
+    main()
