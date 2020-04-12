@@ -10,7 +10,8 @@ public class TestJunit {
 
     @Test
     public void testPrintMessage() {
-        message = "New World";
+//        message = "New World";
+        message = "Hello World";
         assertEquals(message,messageUtil.printMessage());
     }
 

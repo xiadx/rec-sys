@@ -2,11 +2,6 @@ package feature.scala
 
 import java.util.Properties
 
-import com.mafengwo.recommend.flink.event.algo.{MobileClickEvent, MobileShowEvent}
-import com.mafengwo.recommend.flink.schema.algo.{ClickEventSchema, ShowEventSchema}
-import feature.scala.event.SimplifyBaseEvent
-import feature.scala.process.SURFProcess
-import feature.scala.sink.SURFSink
 import org.apache.flink.streaming.api.functions.source.SourceFunction
 import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
 import org.apache.flink.streaming.api.windowing.time.Time
@@ -14,23 +9,31 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
-
+import com.mafengwo.recommend.flink.event.algo.{MobileClickEvent, MobileShowEvent}
+import com.mafengwo.recommend.flink.schema.algo.{ClickEventSchema, ShowEventSchema}
+import com.typesafe.config.Config
+import feature.scala.event.SimplifyBaseEvent
+import feature.scala.process.SURFProcess
+import feature.scala.sink.SURFSink
 import feature.scala.utils.ConfigUtil
+
+import scala.collection.JavaConverters._
+import scala.collection.mutable
 
 object SURFJob {
 
-  val sourceBrokerList = ConfigUtil.surfConf.getString("kafka.source-broker-list")
-  val group = ConfigUtil.surfConf.getString("kafka.group")
-  val account = ConfigUtil.surfConf.getString("kafka.account")
-  val password = ConfigUtil.surfConf.getString("kafka.password")
+  val sourceBrokerList: String = ConfigUtil.surfConf.getString("kafka.source-broker-list")
+  val group: String = ConfigUtil.surfConf.getString("kafka.group")
+  val account: String = ConfigUtil.surfConf.getString("kafka.account")
+  val password: String = ConfigUtil.surfConf.getString("kafka.password")
 
-  val parallelism = ConfigUtil.surfConf.getInt("job.parallelism")
-  val jobName = ConfigUtil.surfConf.getString("job.job-name")
-  val sinkParallelism = ConfigUtil.surfConf.getInt("job.sink-parallelism")
-  val sinkName = ConfigUtil.surfConf.getInt("job.sink-name")
+  val parallelism: Int = ConfigUtil.surfConf.getInt("job.parallelism")
+  val jobName: String = ConfigUtil.surfConf.getString("job.job-name")
+  val sinkParallelism: Int = ConfigUtil.surfConf.getInt("job.sink-parallelism")
+  val sinkName: String = ConfigUtil.surfConf.getString("job.sink-name")
 
-  val windowConf = ConfigUtil.surfConf.getConfig("window")
-  val ws = windowConf.root().keySet()
+  val windowConf: Config = ConfigUtil.surfConf.getConfig("window")
+  val ws: mutable.Set[String] = windowConf.root().keySet().asScala
 
   val properties: Properties = getProperties()
 
@@ -56,7 +59,6 @@ object SURFJob {
     val kafkaConsumer = new FlinkKafkaConsumer[MobileShowEvent]("recommend-mobile-event-show", new ShowEventSchema, properties).setStartFromLatest()
     kafkaConsumer
   }
-
 
   def main(args: Array[String]): Unit = {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
@@ -154,7 +156,8 @@ object SURFJob {
         .process(new SURFProcess(slide))
 
       surfStream.addSink(new SURFSink(w))
-        .setParallelism(sinkName)
+        .setParallelism(sinkParallelism)
+        .name(sinkName)
     }
   }
 

@@ -25,4 +25,17 @@ object JedisUtil {
     new JedisCluster(node, poolConfig)
   }
 
+  def getJedisCluster(redisClusterText: String): JedisCluster = {
+    val poolConfig = new GenericObjectPoolConfig
+    poolConfig.setMaxTotal(MAX_TOTAL)
+    poolConfig.setMaxIdle(MAX_IDLE)
+    poolConfig.setMaxWaitMillis(MAX_WAIT_MILLIS)
+    poolConfig.setTestOnBorrow(TEST_ON_BORROW)
+
+    val hostAndPort = redisClusterText.split(":")
+    val node = new HostAndPort(hostAndPort(0), hostAndPort(1).toInt)
+
+    new JedisCluster(node, poolConfig)
+  }
+
 }

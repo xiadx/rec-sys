@@ -2,21 +2,31 @@ package feature.scala.sink
 
 import java.util.Calendar
 
-import org.apache.flink.streaming.api.functions.sink.SinkFunction
+import org.apache.flink.streaming.api.functions.sink.RichSinkFunction
 import feature.scala.entity.SURF
 import feature.scala.utils.{ConfigUtil, JedisUtil, MapperUtil, RedisClusterEnum}
+import org.apache.flink.configuration.Configuration
 import redis.clients.jedis.JedisCluster
 
-class SURFSink(val window: String) extends SinkFunction[SURF] {
+class SURFSink(val window: String) extends RichSinkFunction[SURF] {
 
-  val jedis_cluster: JedisCluster = if (ConfigUtil.surfConf.getString("redis.cluster").equals("master")) {
-    JedisUtil.getJedisCluser(RedisClusterEnum.RECOMMEND_MASTER)
-  } else {
-    JedisUtil.getJedisCluser(RedisClusterEnum.RECOMMEND_BACKUP)
+  var jedis_cluster: JedisCluster = _
+  val redisClusterText: String = ConfigUtil.surfConf.getString("redis.cluster")
+  val slide: Long = ConfigUtil.surfConf.getLong("window." + window + ".slide")
+  val keyPrefix: String = ConfigUtil.surfConf.getString("redis.key-prefix")
+  val expireTime: Int = ConfigUtil.surfConf.getInt("redis.expire-time")
+
+  override def open(parameters: Configuration): Unit = {
+    super.open(parameters)
+    jedis_cluster = JedisUtil.getJedisCluster(redisClusterText)
   }
-  val slide = ConfigUtil.surfConf.getLong("window." + window + ".slide")
-  val keyPrefix = ConfigUtil.surfConf.getString("redis.key-prefix")
-  val expireTime = ConfigUtil.surfConf.getInt("redis.expire-time")
+
+  override def close(): Unit = {
+    super.close()
+    if (jedis_cluster != null) {
+      jedis_cluster.close()
+    }
+  }
 
   override def invoke(in: SURF): Unit = {
     val cal = Calendar.getInstance()

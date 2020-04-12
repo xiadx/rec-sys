@@ -31,10 +31,15 @@ object MapperUtil {
       } else {
         val id = f.id
         val mark = f.mark
+        val name = f.name
         val status = f.status
         val defaultValue = f.defaultValue
         if (FeatureStatus.YES.toString.equals(status) && a._2 != null && !a._2.toString.equals(defaultValue)) {
-          rm.put(mark + id.toString, a._2)
+          if (fixedFields.contains(name)) {
+            rm.put(name, a._2)
+          } else {
+            rm.put(mark + id.toString, a._2)
+          }
         }
       }
     }

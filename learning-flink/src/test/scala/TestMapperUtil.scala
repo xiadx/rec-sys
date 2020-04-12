@@ -105,7 +105,7 @@ class TestMapperUtil {
     var toRedisMinute: Int = 0
     var toRedisSecond: Int = 0
     var toRedisDelay: Long = 0L
-    var deadlineTime: Long = 0L
+    var deadlineTime: Long = 1000L
 
     val surf = SURF(openUdid,
       totalClickCount,
