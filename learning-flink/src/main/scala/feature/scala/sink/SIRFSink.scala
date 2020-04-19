@@ -3,19 +3,19 @@ package feature.scala.sink
 import java.util.Calendar
 
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction
-import feature.scala.entity.SURF
+import feature.scala.entity.SIRF
 import feature.scala.utils.{ConfigUtil, JedisUtil, MapperUtil, RedisClusterEnum}
 import org.apache.flink.configuration.Configuration
 import redis.clients.jedis.JedisCluster
 
-class SURFSink(val window: String) extends RichSinkFunction[SURF] {
+class SIRFSink(val window: String) extends RichSinkFunction[SIRF] {
 
   var jedis_cluster: JedisCluster = _
-  val redisClusterText: String = ConfigUtil.surfConf.getString("redis.cluster")
-  val slide: Long = ConfigUtil.surfConf.getLong("window." + window + ".slide")
-  val extraDeadline: Long = ConfigUtil.surfConf.getLong("window." + window + ".extra-deadline")
-  val keyPrefix: String = ConfigUtil.surfConf.getString("redis.key-prefix")
-  val expireTime: Int = ConfigUtil.surfConf.getInt("redis.expire-time")
+  val redisClusterText: String = ConfigUtil.sirfConf.getString("redis.cluster")
+  val slide: Long = ConfigUtil.sirfConf.getLong("window." + window + ".slide")
+  val extraDeadline: Long = ConfigUtil.sirfConf.getLong("window." + window + ".extra-deadline")
+  val keyPrefix: String = ConfigUtil.sirfConf.getString("redis.key-prefix")
+  val expireTime: Int = ConfigUtil.sirfConf.getInt("redis.expire-time")
 
   override def open(parameters: Configuration): Unit = {
     super.open(parameters)
@@ -29,7 +29,7 @@ class SURFSink(val window: String) extends RichSinkFunction[SURF] {
     }
   }
 
-  override def invoke(in: SURF): Unit = {
+  override def invoke(in: SIRF): Unit = {
     val cal = Calendar.getInstance()
     val currentTime = System.currentTimeMillis()
     cal.setTimeInMillis(currentTime)
@@ -61,8 +61,8 @@ class SURFSink(val window: String) extends RichSinkFunction[SURF] {
     }
 
     if ("update".equals(action)) {
-      val key = keyPrefix + in.openUdid
-      val value = MapperUtil.writeSURFToString(window, in)
+      val key = keyPrefix + in.itemUniqueId
+      val value = MapperUtil.writeSIRFToString(window, in)
       jedis_cluster.hset(key, window, value)
       jedis_cluster.expire(key, expireTime)
     }

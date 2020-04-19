@@ -1,7 +1,6 @@
 import org.junit.Test
-
-import feature.scala.entity.SURF
-import feature.scala.utils.MapperUtil
+import feature.scala.entity.{SIRF, SURF}
+import feature.scala.utils.{MapperUtil, ConfigUtil}
 
 class TestMapperUtil {
 
@@ -208,6 +207,101 @@ class TestMapperUtil {
       deadlineTime)
 
     println(MapperUtil.writeSURFToString( "w1", surf))
+  }
+
+  @Test
+  def testWriteSIRFToString(): Unit = {
+    val itemId: String = "abc"
+    val itemType: String = "8"
+    val itemUniqueId: String = "abc_8"
+    var totalClickCount: Long = 2L
+    var totalShowCount: Long = 4L
+    var totalCtr1: Double = 0.0d
+    var totalCtr2: Double = 0.0d
+    var indexClickCount: Long = 0L
+    var indexShowCount: Long = 0L
+    var indexCtrV1: Double = 0.0d
+    var indexCtrV2: Double = 0.0d
+    var recClickCount: Long = 0L
+    var recShowCount: Long = 0L
+    var recCtrV1: Double = 0.0d
+    var recCtrV2: Double = 0.0d
+    var nearClickCount: Long = 0L
+    var nearShowCount: Long = 0L
+    var nearCtrV1: Double = 0.0d
+    var wengDetailClickCount: Long = 0L
+    var wengDetailShowCount: Long = 0L
+    var wengDetailCtrV1: Double = 0.0d
+    var videoDetailClickCount: Long = 0L
+    var videoDetailShowCount: Long = 0L
+    var videoDetailCtrV1: Double = 0.0d
+    var mddClickCount: Long = 0L
+    var mddShowCount: Long = 0L
+    var mddCtrV1: Double = 0.0d
+    var windowStartTime: Long = 0L
+    var windowEndTime: Long = 0L
+    var eventStartTime: Long = 0L
+    var eventEndTime: Long = 0L
+    var toRedisTime: Long = 0L
+    var toRedisYear: Int = 0
+    var toRedisMonth: Int = 0
+    var toRedisDay: Int = 0
+    var toRedisWeek: Int = 0
+    var toRedisHour: Int = 0
+    var toRedisMinute: Int = 0
+    var toRedisSecond: Int = 0
+    var toRedisDelay: Long = 0L
+    var deadlineTime: Long = 1000L
+
+    val sirf = SIRF(itemId,
+      itemType,
+      itemUniqueId,
+      totalClickCount,
+      totalShowCount,
+      totalCtr1,
+      totalCtr2,
+      indexClickCount,
+      indexShowCount,
+      indexCtrV1,
+      indexCtrV2,
+      recClickCount,
+      recShowCount,
+      recCtrV1,
+      recCtrV2,
+      nearClickCount,
+      nearShowCount,
+      nearCtrV1,
+      wengDetailClickCount,
+      wengDetailShowCount,
+      wengDetailCtrV1,
+      videoDetailClickCount,
+      videoDetailShowCount,
+      videoDetailCtrV1,
+      mddClickCount,
+      mddShowCount,
+      mddCtrV1,
+      windowStartTime,
+      windowEndTime,
+      eventStartTime,
+      eventEndTime,
+      toRedisTime,
+      toRedisYear,
+      toRedisMonth,
+      toRedisDay,
+      toRedisWeek,
+      toRedisHour,
+      toRedisMinute,
+      toRedisSecond,
+      toRedisDelay,
+      deadlineTime)
+
+    println(MapperUtil.writeSIRFToString("w1", sirf))
+  }
+
+  @Test
+  def testWriteRFConfigToString(): Unit = {
+    val rfconf = ConfigUtil.getRFConfig()
+    println(MapperUtil.writeRFConfigToString(rfconf))
   }
 
 }

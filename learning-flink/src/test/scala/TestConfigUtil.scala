@@ -5,8 +5,13 @@ import redis.clients.jedis.JedisCluster
 class TestConfigUtil {
 
   @Test
-  def testGetFeatureMap(): Unit = {
-    println(ConfigUtil.getFeatureMap("w1"))
+  def testGetSURFFeatureMap(): Unit = {
+    println(ConfigUtil.getSURFFeatureMap("w1"))
+  }
+
+  @Test
+  def testGetSIRFBayesianSmoothing(): Unit = {
+    println(ConfigUtil.getSIRFBayesianSmoothing())
   }
 
   @Test
