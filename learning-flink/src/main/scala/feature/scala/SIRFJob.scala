@@ -150,7 +150,7 @@ object SIRFJob {
       val slide = windowConf.getLong(w + ".slide")
       val sirfStream = clickStream
         .union(showStream)
-        .keyBy(_.openUdid)
+        .keyBy(_.itemUniqueId)
         .timeWindow(
           Time.milliseconds(size + slide), Time.milliseconds(slide))
         .process(new SIRFProcess(slide))

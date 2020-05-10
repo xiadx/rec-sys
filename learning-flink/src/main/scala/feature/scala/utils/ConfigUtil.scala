@@ -93,6 +93,7 @@ object ConfigUtil {
     rfconf.user_realtime_prefix = rfprintConf.getString("user-realtime-prefix")
     rfconf.item_realtime_prefix = rfprintConf.getString("item-realtime-prefix")
     rfconf.featureVersion = rfprintConf.getString("feature-version")
+    rfconf.featureStructure = rfprintConf.getString("feature-structure")
     rfconf.template_prefix = rfprintConf.getString("template-prefix")
     rfconf.itemprofile_prefix = rfprintConf.getString("itemprofile-prefix")
     rfconf.needCache = rfprintConf.getString("need-cache")

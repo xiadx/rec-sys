@@ -23,14 +23,6 @@ object TimeUtil {
     sdf.format(cal.getTime)
   }
 
-  def getYesterdayStr(dt: String, pattern: String = "yyyyMMdd"): String = {
-    val cal = Calendar.getInstance()
-    val sdf = new SimpleDateFormat(pattern)
-    cal.setTime(sdf.parse(dt))
-    cal.add(Calendar.DATE, -1)
-    sdf.format(cal.getTime)
-  }
-
   def getFewDaysAgo(dt: String, count: Int, pattern: String = "yyyyMMdd"): String = {
     val cal = Calendar.getInstance()
     val sdf = new SimpleDateFormat(pattern)

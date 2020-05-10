@@ -4,6 +4,7 @@ class RFConfig {
   var user_realtime_prefix = ""
   var item_realtime_prefix = ""
   var featureVersion = ""
+  var featureStructure = ""
   var template_prefix = ""
   var itemprofile_prefix = ""
   var needCache = "true"
