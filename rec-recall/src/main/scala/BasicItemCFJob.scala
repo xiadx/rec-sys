@@ -1,17 +1,25 @@
 import scala.collection.mutable
-
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.{concat_ws, explode, split}
 import org.apache.log4j.{Level, Logger}
-
 import data.DataUtil
-import utils.TimeUtil
+import org.apache.spark.broadcast.Broadcast
+import utils.{TimeUtil, HiveUtil, ConfigUtil}
 import udfs.CommonUDF
 
 object BasicItemCFJob {
 
   val logger = Logger.getLogger("org")
   logger.setLevel(Level.ERROR)
+
+  val interval: Int = ConfigUtil.basicitemcfConf.getInt("interval")
+  val tokenMax: Int = ConfigUtil.basicitemcfConf.getInt("token-max")
+  val tokenMin: Int = ConfigUtil.basicitemcfConf.getInt("token-min")
+  val truncate: Int = ConfigUtil.basicitemcfConf.getInt("truncate")
+  val decimal: String = ConfigUtil.basicitemcfConf.getString("decimal")
+  val prefix: String = ConfigUtil.basicitemcfConf.getString("prefix")
+  val dbName: String = ConfigUtil.basicitemcfConf.getString("dbname")
+  val tableName: String = ConfigUtil.basicitemcfConf.getString("tablename")
 
   def main(args: Array[String]): Unit = {
     var dt = ""
@@ -32,12 +40,34 @@ object BasicItemCFJob {
       enableHiveSupport().
       getOrCreate()
 
+    val endTime = dt
+    val startTime = TimeUtil.getFewDaysAgo(dt, interval)
+
+    val clickSession = getClickSession(startTime, endTime, spark)
+
+    val itemCount = getItemCount(clickSession, spark)
+    val broadcastItemCount = spark.sparkContext.broadcast(itemCount)
+
+    val commonAppear = getCommonAppear(clickSession, spark)
+    val itemSimilarity = getItemSimilarity(commonAppear, broadcastItemCount, spark)
+
+    val whiteList = getWhiteList(endTime, spark)
+    val broadcastWhiteList = spark.sparkContext.broadcast(whiteList)
+    val whiteListItemSimilarity = getWhiteListItemSimilarity(itemSimilarity, broadcastWhiteList, spark)
+
+    val triggerSim = getTriggerSim(prefix, truncate, whiteListItemSimilarity, spark: SparkSession)
+
+    HiveUtil.saveDataFrameAsHiveTable(triggerSim, dbName, tableName, endTime, spark)
+  }
+
+  def baseContributeScore(n: Long): Double = {
+    1.0d / Math.log(1 + n)
+  }
+
+  def getClickSession(startTime: String, endTime: String, spark: SparkSession): DataFrame = {
     import spark.implicits._
 
-    val endTime = dt
-    val startTime = TimeUtil.getFewDaysAgo(dt, 30)
-
-    val userAction = DataUtil.getUserAction(startTime, endTime, spark).
+    val userAction = DataUtil.getUserActionHour(startTime, endTime, spark).
       select("open_udid", "item_id", "item_type", "dt").
       na.drop().
       withColumn("item_type", CommonUDF.itemTypeTransform($"item_type")).
@@ -50,7 +80,13 @@ object BasicItemCFJob {
     }.reduceByKey((x, y) => (x._1 + "\t" + y._1, x._2 + y._2)).map { r =>
       (r._1.toString, r._2._1, r._2._2)
     }.toDF("user_uuid", "tokens", "tokenNums").
-      filter("tokenNums < 100 and tokenNums > 5").na.drop()
+      filter("tokenNums < %d and tokenNums > %d".format(tokenMax, tokenMin)).na.drop()
+
+    clickSession
+  }
+
+  def getItemCount(clickSession: DataFrame, spark: SparkSession): scala.collection.Map[String, Long] = {
+    import spark.implicits._
 
     val itemCount = clickSession.select("tokens").
       withColumn("item_uuid", explode(split($"tokens", "\t"))).
@@ -59,7 +95,11 @@ object BasicItemCFJob {
       reduceByKey(_ + _).
       collectAsMap()
 
-    val broadcastItemCount = spark.sparkContext.broadcast(itemCount)
+    itemCount
+  }
+
+  def getCommonAppear(clickSession: DataFrame, spark: SparkSession): DataFrame = {
+    import spark.implicits._
 
     val commonAppear = clickSession.rdd.map { r =>
       val (userUuid: String, tokens: String, tokenNums: Long) = (r(0), r(1), r(2))
@@ -82,6 +122,12 @@ object BasicItemCFJob {
         (triggerId, simId, contributeScore)
       }.toDF("triggerId", "simId", "contributeScore")
 
+    commonAppear
+  }
+
+  def getItemSimilarity(commonAppear: DataFrame, broadcastItemCount: Broadcast[scala.collection.Map[String, Long]], spark: SparkSession): DataFrame = {
+    import spark.implicits._
+
     val itemSimilarity = commonAppear.rdd.map { r =>
       ((r(0).toString, r(1).toString), (r(2).toString.toDouble, 1L))
     }.reduceByKey((x, y) => (x._1 + y._1, x._2 + y._2)).map { r =>
@@ -95,30 +141,54 @@ object BasicItemCFJob {
       (triggerId, simId, similarity)
     }.toDF("triggerId", "simId", "similarity")
 
-    val whiteSet = DataUtil.getWhiteList(endTime, spark).
+    itemSimilarity
+  }
+
+  def getWhiteList(dt: String, spark: SparkSession): scala.collection.immutable.Set[String] = {
+    import spark.implicits._
+
+    val whiteList = DataUtil.getWhiteList(dt, spark).
       select(concat_ws("_", $"item_id", $"item_type").as("item_uuid")).rdd.map(r => r(0).toString).
       collect().toSet
 
-    val broadcastWhiteSet = spark.sparkContext.broadcast(whiteSet)
+    whiteList
+  }
 
-    val whiteItemSimilarity = itemSimilarity.rdd.map { r =>
+  def getWhiteListItemSimilarity(itemSimilarity: DataFrame, broadcastWhiteList: Broadcast[scala.collection.immutable.Set[String]], spark: SparkSession): DataFrame = {
+    import spark.implicits._
+
+    val whiteListItemSimilarity = itemSimilarity.rdd.map { r =>
+      val triggerId = r(0).toString
+      val simId = r(1).toString
+      val similarity = r(2).toString.toDouble
+      val whiteList = broadcastWhiteList.value
+      if (whiteList.contains(simId)) (triggerId, simId, similarity) else null
+    }.filter(t => t != null).toDF("triggerId", "simId", "similarity")
+
+    whiteListItemSimilarity
+  }
+
+  def getTriggerSim(prefix: String, truncate: Int, whiteListItemSimilarity: DataFrame, spark: SparkSession): DataFrame = {
+    import spark.implicits._
+
+    val triggerSim = whiteListItemSimilarity.rdd.map { r =>
       val triggerId = r(0).toString
       val simId = r(1).toString
       val score = r(2).toString.toDouble
       val simItemId = simId.split("_")(0)
       val simItemType = simId.split("_")(1)
-      val prefix = "{CF_BASICITEMCF_RECALLTYPE_V1}_"
-      val key = prefix.replace("RECALLTYPE", simItemType) + triggerId
-      val whiteSet = broadcastWhiteSet.value
-      if (whiteSet.contains(simId)) (key, simItemId, simItemType, score) else null
-    }.filter(t => t != null).toDF("key", "simItemId", "simItemType", "score")
+      val key = prefix.format(simItemType) + triggerId
+      (key, simItemId, simItemType, score)
+    }.toDF("key", "simItemId", "simItemType", "score").rdd.groupBy(r => r(0)).map {
+      case (triggerId, simItemIdList) =>
+        val simArray = simItemIdList.toArray.sortBy(r => r(3).toString.toDouble).reverse.map { r =>
+          r(1).toString + "_" + r(2).toString + "_" + r(3).toString.toDouble.formatted(decimal)
+        }
+        if (truncate == -1 || simArray.length <= truncate) (triggerId.toString, simArray.mkString(";"))
+        else (triggerId.toString, simArray.slice(0, truncate).mkString(";"))
+    }.toDF("trigger", "sim")
 
-    itemSimilarity.show
-
-  }
-
-  def baseContributeScore(n: Long): Double = {
-    1.0d / Math.log(1 + n)
+    triggerSim
   }
 
 }

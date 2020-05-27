@@ -2,10 +2,6 @@
 
 source ./parameter.sh
 
-echo "job_path:${job_path}"
-echo "module_name:${module_name}"
-echo "jar_path:${jar_path}"
-
 master=yarn
 queue=root.spark
 spark_default_parallelism=600
@@ -22,4 +18,4 @@ executor_cores=5
     --executor-memory ${executor_memory} \
     --num-executors ${num_executors} \
     --executor-cores ${executor_cores} \
-    --jars ${jar_path}
+    --jars ${dependency_jar},${jar_path}

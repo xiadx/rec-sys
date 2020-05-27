@@ -79,6 +79,7 @@ object PoolUtil {
         |where
         | dt='%s'
       """.stripMargin.format(dt)
+
     spark.sql(sql)
   }
 
@@ -207,6 +208,7 @@ object PoolUtil {
         |where
         | dt='%s'
       """.stripMargin.format(dt)
+
     spark.sql(sql)
   }
 
