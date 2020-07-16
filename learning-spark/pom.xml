@@ -92,6 +92,18 @@
             <artifactId>hbase-server</artifactId>
             <version>${hbase.version}</version>
         </dependency>
+        <!-- https://github.com/linkedin/spark-tfrecord -->
+        <dependency>
+            <groupId>com.linkedin.sparktfrecord</groupId>
+            <artifactId>spark-tfrecord_2.11</artifactId>
+            <version>0.2.1</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.tensorflow/spark-tensorflow-connector -->
+        <!--<dependency>-->
+            <!--<groupId>org.tensorflow</groupId>-->
+            <!--<artifactId>spark-tensorflow-connector_2.11</artifactId>-->
+            <!--<version>1.13.1</version>-->
+        <!--</dependency>-->
     </dependencies>
 
 

@@ -10,6 +10,8 @@ class DSSMConfigUtil(object):
 
     sample_conf = ConfigFactory.parse_file(os.path.join(conf_path, "sample.conf"))
 
+    item_conf = ConfigFactory.parse_file(os.path.join(conf_path, "item-profile.conf"))
+
 
 def main():
     print(os.getcwd())
