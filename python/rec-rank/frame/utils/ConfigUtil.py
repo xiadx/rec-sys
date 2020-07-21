@@ -10,6 +10,14 @@ class ConfigUtil(object):
 
     spark_conf = ConfigFactory.parse_file(os.path.join(conf_path, "spark.conf"))
 
+    cmd_conf = ConfigFactory.parse_file(os.path.join(conf_path, "cmd.conf"))
+
+    pipe_conf = ConfigFactory.parse_file(os.path.join(conf_path, "pipe.conf"))
+
+    submit_conf = ConfigFactory.parse_file(os.path.join(conf_path, "submit.conf"))
+
+    model_conf = ConfigFactory.parse_file(os.path.join(conf_path, "model.conf"))
+
 
 def main():
     print(os.getcwd())

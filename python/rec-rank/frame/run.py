@@ -17,6 +17,10 @@ def main():
     # conf_mgr.load_basic_feature()
     # conf_mgr.load_offline_feature()
     conf_mgr.load_spark_conf()
+    conf_mgr.load_model_conf()
+    conf_mgr.load_cmd_conf()
+    conf_mgr.load_pipe_conf()
+    conf_mgr.load_submit_conf()
 
     job_mgr = job_manager.JobManager(conf_mgr)
 
@@ -26,17 +30,8 @@ def main():
             sys.exit(1)
 
         job_name = sys.argv[1]
-        app = conf_mgr.spark_conf[job_name].app
-        param = conf_mgr.spark_conf[job_name].param
-        conf = conf_mgr.spark_conf[job_name].conf
-        arg = conf_mgr.spark_conf[job_name].arg
 
-        code, ret = job_mgr.submitter.submit(app,
-                                             arg,
-                                             param,
-                                             conf)
-        print('code:', code)
-        print('msg', ret)
+        job_mgr.submitter.submit(job_name)
 
 
 if __name__ == "__main__":

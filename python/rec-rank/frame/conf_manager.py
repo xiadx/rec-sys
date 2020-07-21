@@ -21,15 +21,47 @@ class FeatureConf(object):
 class SparkConf(object):
 
     def __init__(self, name, conf):
-        self.job_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
         self.type = conf.get_string("type")
         self.package = conf.get_string("package")
-        self.app = os.path.join(self.job_path, conf.get_string("app"))
+        self.app = conf.get_string("app")
         self.param = conf.get_config("param").as_plain_ordered_dict()
-        if "jars" in self.param:
-            self.param["jars"] = os.path.join(self.job_path, self.param["jars"])
         self.conf = conf.get_config("conf").as_plain_ordered_dict()
         self.arg = conf.get_config("arg").as_plain_ordered_dict()
+
+
+class ModelConf(object):
+
+    def __init__(self, name, conf):
+        self.type = conf.get_string("type")
+        self.package = conf.get_string("package")
+        self.app = conf.get_string("app")
+        self.arg = conf.get_config("arg").as_plain_ordered_dict()
+
+
+class CmdConf(object):
+
+    def __init__(self, name, conf):
+        self.typ = conf.get_string("type")
+        self.cmd = conf.get_string("cmd")
+        self.arg = conf.get_config("arg").as_plain_ordered_dict()
+
+
+class PipeConf(object):
+
+    def __init__(self, name, conf):
+        self.pipelines = conf.as_plain_ordered_dict()
+
+
+class SubmitConf(object):
+
+    def __init__(self, name, conf):
+        self.hive = conf.get_string("hive")
+        self.presto = conf.get_string("presto")
+        self.hadoop = conf.get_string("hadoop")
+        self.python = conf.get_string("python")
+        self.spark = conf.get_string("spark")
+        self.conf = conf.get_config("conf").as_plain_ordered_dict()
+        self.param = conf.get_config("param").as_plain_ordered_dict()
 
 
 class ConfManager(object):
@@ -44,10 +76,38 @@ class ConfManager(object):
 
         self.spark_conf = dict()
 
+        self.model_conf = dict()
+
+        self.cmd_conf = dict()
+
+        self.pipe_conf = dict()
+
+        self.submit_conf = dict()
+
     def load_spark_conf(self):
         for name in ConfigUtil.spark_conf.keys():
             conf = ConfigUtil.spark_conf.get_config(name)
             self.spark_conf[name] = SparkConf(name, conf)
+
+    def load_model_conf(self):
+        for name in ConfigUtil.model_conf.keys():
+            conf = ConfigUtil.model_conf.get_config(name)
+            self.model_conf[name] = ModelConf(name, conf)
+
+    def load_cmd_conf(self):
+        for name in ConfigUtil.cmd_conf.keys():
+            conf = ConfigUtil.cmd_conf.get_config(name)
+            self.cmd_conf[name] = CmdConf(name, conf)
+
+    def load_pipe_conf(self):
+        for name in ConfigUtil.pipe_conf.keys():
+            conf = ConfigUtil.pipe_conf.get_config(name)
+            self.pipe_conf[name] = PipeConf(name, conf)
+
+    def load_submit_conf(self):
+        for name in ConfigUtil.submit_conf.keys():
+            conf = ConfigUtil.submit_conf.get_config(name)
+            self.submit_conf[name] = SubmitConf(name, conf)
 
     def load_basic_feature(self):
         self.mysql_conn = JdbcUtil.get_connection()
@@ -142,12 +202,17 @@ class ConfManager(object):
 
 def main():
     conf_mgr = ConfManager()
-    conf_mgr.load_basic_feature()
-    conf_mgr.load_offline_feature()
+    # conf_mgr.load_basic_feature()
+    # conf_mgr.load_offline_feature()
 
     conf_mgr.load_spark_conf()
+    conf_mgr.load_cmd_conf()
+    conf_mgr.load_pipe_conf()
+    conf_mgr.load_submit_conf()
 
-    print(json.dumps(conf_mgr.spark_conf["dump-sample"].__dict__))
+    # print(json.dumps(conf_mgr.spark_conf["dump-sample"].__dict__))
+    # print(conf_mgr.cmd_conf["load-train-sample"].__dict__)
+    print(conf_mgr.submit_conf["submit"].__dict__)
 
 
 if __name__ == "__main__":
