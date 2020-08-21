@@ -3,7 +3,9 @@ package example
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions.udf
+import org.apache.spark.sql.{Row, SparkSession}
+import org.apache.spark.sql.types.{StringType, DoubleType, StructField, StructType}
 
 import scala.collection.mutable
 
@@ -176,15 +178,57 @@ object HelloWorld {
 //
 //    eProfile.join(eOrder, Seq("open_udid", "tag_id"), "full").show()
 
-    import org.apache.spark.sql.functions.lit
-    var df = Seq(
-      ("a", 18),
-      ("b", 19)
-    ).toDF("name", "age")
+//    import org.apache.spark.sql.functions.lit
+//    var df = Seq(
+//      ("a", 18),
+//      ("b", 19)
+//    ).toDF("name", "age")
+//
+//    df = df.withColumn("sex", lit(1))
+//
+//    df.show()
 
-    df = df.withColumn("sex", lit(1))
+//    import org.apache.spark.sql.functions.from_json
+//    import org.apache.spark.sql.types.{StructType, StructField, StringType, IntegerType}
+//    val df = Seq(
+//      ("a", "{\"n\":1,\"c\":2},{\"n\":3,\"c\":4}")
+//    ).toDF("key", "value")
+////    val schema = new StructType()
+////      .add(StructField("n", IntegerType))
+////        .add(StructField("c", IntegerType))
+//    val schema = new StructType()
+//      .add(StructField("n", IntegerType))
+//        .add(StructField("c", IntegerType))
+//    df.select($"key", from_json($"value", schema).alias("value")).select($"key", $"value.n", $"value.c")
+//      .show(false)
 
-    df.show()
+    val schema = StructType(StructField("id", StringType, true) ::
+      StructField("name", StringType, true) ::
+      StructField("f1", DoubleType, true) ::
+      StructField("f2", DoubleType, true):: Nil)
+
+    val lr = new java.util.ArrayList[Row](java.util.Arrays.asList[Row](
+      Row("i1", "a", 0.1, 0.3),
+      Row("i2", "b", null, 0.4),
+      Row("i3", null, 0.3, 0.5),
+      Row("i4", "d", 0.2, null)
+    ))
+
+    var df = spark.createDataFrame(lr, schema)
+
+    df.show(false)
+
+
+
+    val prod = udf((f1: java.lang.Double) => {
+      if (null == f1) 100.0
+    })
+
+    df.withColumn("prod", prod($"f1")).show(false)
+
+
+
+
   }
 
 }

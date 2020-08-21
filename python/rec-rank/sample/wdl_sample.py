@@ -5,6 +5,7 @@ import datetime
 from pyspark.sql import *
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
+from pyspark.storagelevel import StorageLevel
 # from pyspark.mllib.regression import LabeledPoint
 # from pyspark.mllib.linalg import Vectors
 # from pyspark.mllib.util import MLUtils
@@ -202,11 +203,13 @@ def main():
     df_train = spark.read.parquet(*[os.path.join(input_path, day) for day in train_days_list]) \
         .select(*(sels + pure_onehot_cols + vector_cols)) \
         .where(whe)
-    df_train = one_hot_df(df_train, onehot_conf)
+    df_train = one_hot_df(df_train, onehot_conf) \
+        .persist(StorageLevel.MEMORY_AND_DISK_SER)
     df_test = spark.read.parquet(*[os.path.join(input_path, day) for day in test_days_list]) \
         .select(*(sels + pure_onehot_cols + vector_cols)) \
         .where(whe)
-    df_test = one_hot_df(df_test, onehot_conf)
+    df_test = one_hot_df(df_test, onehot_conf) \
+        .persist(StorageLevel.MEMORY_AND_DISK_SER)
 
     feature_columns = [c for c in df_train.columns if c not in ignore_cols]
     onehot_columns = get_onehot_columns(one_hot)

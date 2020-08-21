@@ -2,6 +2,9 @@ import os
 import re
 import sys
 import json
+import time
+import logging
+import functools
 import inspect
 import datetime
 import tensorflow as tf
@@ -134,6 +137,34 @@ def WDLEstimator(model_dir, wide_columns, deep_columns, linear_optimizer, dnn_op
     return model_es
 
 
+def timeit(fn):
+    # create logger
+    logger = logging.getLogger('timeit')
+    logger.setLevel(logging.INFO)
+
+    # create console handler and set level to info
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+
+    # create formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    # add formatter to ch
+    ch.setFormatter(formatter)
+
+    # add ch to logger
+    logger.addHandler(ch)
+
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        begin = time.time()
+        result = fn(*args, **kwargs)
+        logger.info("cost %.2fs for %s" % (time.time() - begin, fn.__name__))
+        return result
+
+    return wrapper
+
+@timeit
 def main():
     if len(sys.argv) != 2:
         print("parameter error")
@@ -163,26 +194,29 @@ def main():
         start = days_list["test"]["start"]
         end = days_list["test"]["end"]
         test_days_list = get_days_list(start, end)
-
     if dt_part:
         train_tfrecord_files = get_tfrecord_files([os.path.join(train_path, day) for day in train_days_list])
         test_tfrecord_files = get_tfrecord_files([os.path.join(test_path, day) for day in test_days_list])
     else:
         train_tfrecord_files = get_tfrecord_files([train_path])
         test_tfrecord_files = get_tfrecord_files([test_path])
-
     train_dataset_param = arg["ds-param"]["train"]
     test_dataset_param = arg["ds-param"]["test"]
     model_param = arg["model-param"]
     label = arg["label"]
     features = arg["features"]
     bucketized_features = arg["bucketized"]
+
     tf_features = get_tf_features(features)
     tf_bucketized_features = get_tf_bucketized_features(bucketized_features)
 
     wide_columns, deep_columns = get_feature_column(tf_features, tf_bucketized_features, None, None)
 
     feature_description = get_feature_description(tf_features)
+
+    print(feature_description)
+
+    sys.exit(1)
 
     train_model_input = input_fn_tfrecord(train_tfrecord_files,
                                           feature_description,
@@ -192,9 +226,11 @@ def main():
                                          feature_description,
                                          label,
                                          **test_dataset_param)
+
     linear_optimizer = getattr(tf.optimizers, model_param["linear-optimizer"]["name"])(**model_param["linear-optimizer"])
     dnn_optimizer = getattr(tf.optimizers, model_param["dnn-optimizer"]["name"])(**model_param["dnn-optimizer"])
     dnn_hidden_units = model_param["dnn-hidden-units"]
+
     model_es = WDLEstimator(model_dir=model_dir,
                             wide_columns=wide_columns,
                             deep_columns=deep_columns,
@@ -202,8 +238,10 @@ def main():
                             dnn_optimizer=dnn_optimizer,
                             dnn_hidden_units=dnn_hidden_units)
     model_es.train(input_fn=train_model_input)
+
     serving_input_receiver_fn = serving_input_fn(wide_columns + deep_columns)
     model_es.export_saved_model(model_export_dir, serving_input_receiver_fn)
+
     eval_result = model_es.evaluate(test_model_input)
     print(eval_result)
 
