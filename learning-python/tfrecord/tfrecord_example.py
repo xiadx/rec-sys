@@ -10,7 +10,7 @@ def main():
         'LongCol': tf.io.FixedLenFeature([], tf.int64, default_value=0),
         'FloatCol': tf.io.FixedLenFeature([], tf.float32, default_value=0.0),
         'DoubleCol': tf.io.FixedLenFeature([], tf.float32, default_value=0.0),
-        'VectorCol': tf.io.FixedLenSequenceFeature([2], tf.float32, allow_missing=True, default_value=0.0),
+        'VectorCol': tf.io.FixedLenFeature([2], tf.float32, default_value=[0.0, 0.0]),
         'StringCol': tf.io.FixedLenFeature([], tf.string, default_value=''),
     }
 

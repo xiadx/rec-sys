@@ -1,6 +1,7 @@
 package utils.entity
 
-object DataTypeEnum extends Enumeration {
+@SerialVersionUID(1L)
+object DataTypeEnum extends Enumeration with Serializable {
 
   type DataTypeEnum = Value
 

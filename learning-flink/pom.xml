@@ -111,6 +111,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-flink</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.mafengwo.recommend</groupId>
             <artifactId>common</artifactId>
             <version>1.50</version>

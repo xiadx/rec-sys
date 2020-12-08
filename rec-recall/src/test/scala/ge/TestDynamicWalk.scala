@@ -47,10 +47,12 @@ class TestDynamicWalk {
     val e1 = new EntityNode("poi", "p1", System.currentTimeMillis())
     val e2 = new EntityNode("weng", "w2", System.currentTimeMillis())
     val e3 = new EntityNode("sale", "s3", System.currentTimeMillis())
+    val e4 = new EntityNode("item", "i4", System.currentTimeMillis())
     val index2Node = new mutable.HashMap[Int, EntityNode]
     index2Node.put(1, e1)
     index2Node.put(2, e2)
     index2Node.put(3, e3)
+    index2Node.put(4, e3)
     val matrix = new Array[Array[Double]](index2Node.size)
     initTransferMatrix(matrix, index2Node)
     for (r <- matrix) {

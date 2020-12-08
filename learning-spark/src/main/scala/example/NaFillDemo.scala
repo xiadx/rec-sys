@@ -3,6 +3,7 @@ package example
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import org.apache.spark.sql.functions.
 
 object NaFillDemo {
 

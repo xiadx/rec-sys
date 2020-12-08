@@ -19,10 +19,6 @@ public class ReverseBetween {
     private ListNode left;
 
     public void recurseAndReverse(ListNode right, int m, int n) {
-
-        System.out.println("left:" + this.left.val + ",right:" + right.val);
-        System.out.println("m:" + m + ",n:" + n);
-
         // base case. Don't proceed any further
         if (n == 1) {
             return;
@@ -66,18 +62,23 @@ public class ReverseBetween {
         return head;
     }
 
+    public static void print(ListNode head) {
+        ArrayList<Integer> al = new ArrayList<>();
+        while (head != null) {
+            al.add(head.val);
+            head = head.next;
+        }
+        System.out.println(al.toString());
+    }
+
     public static void main(String[] args) {
         ListNode head = new ListNode(1);
         head.next = new ListNode(2);
         head.next.next = new ListNode(3);
+        head.next.next.next = new ListNode(4);
         ReverseBetween rb = new ReverseBetween();
-        ListNode p = rb.reverseBetween(head, 1, 2);
-        ArrayList<Integer> al = new ArrayList<Integer>();
-        while (p != null) {
-            al.add(p.val);
-            p = p.next;
-        }
-        System.out.println(al.toString());
+        ListNode p = rb.reverseBetween(head, 2, 4);
+        print(p);
     }
 
 }

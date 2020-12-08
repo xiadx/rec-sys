@@ -1,15 +1,25 @@
 package example
 
+import java.text.SimpleDateFormat
+import java.util.{Calendar, Date}
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.{Row, SparkSession}
-import org.apache.spark.sql.types.{StringType, DoubleType, StructField, StructType}
+import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
 
 import scala.collection.mutable
+import scala.util.control.Breaks
 
 object HelloWorld {
+
+  val logger: Logger = Logger.getLogger("org")
+  logger.setLevel(Level.ERROR)
 
   val mapper = new ObjectMapper()
   mapper.registerModule(DefaultScalaModule)
@@ -202,33 +212,35 @@ object HelloWorld {
 //    df.select($"key", from_json($"value", schema).alias("value")).select($"key", $"value.n", $"value.c")
 //      .show(false)
 
-    val schema = StructType(StructField("id", StringType, true) ::
-      StructField("name", StringType, true) ::
-      StructField("f1", DoubleType, true) ::
-      StructField("f2", DoubleType, true):: Nil)
+//    val schema = StructType(StructField("id", StringType, true) ::
+//      StructField("name", StringType, true) ::
+//      StructField("f1", DoubleType, true) ::
+//      StructField("f2", DoubleType, true):: Nil)
+//
+//    val lr = new java.util.ArrayList[Row](java.util.Arrays.asList[Row](
+//      Row("i1", "a", 0.1, 0.3),
+//      Row("i2", "b", null, 0.4),
+//      Row("i3", null, 0.3, 0.5),
+//      Row("i4", "d", 0.2, null)
+//    ))
+//
+//    var df = spark.createDataFrame(lr, schema)
+//    println(df.rdd.take(1)(0)(1).toString)
+//
+//    val prod = udf((f1: java.lang.Double) => {
+//      null == f1
+//    })
+//
+//    df.withColumn("prod", prod($"f1")).show(false)
+    println(abc(1.0, 2.0))
+  }
 
-    val lr = new java.util.ArrayList[Row](java.util.Arrays.asList[Row](
-      Row("i1", "a", 0.1, 0.3),
-      Row("i2", "b", null, 0.4),
-      Row("i3", null, 0.3, 0.5),
-      Row("i4", "d", 0.2, null)
-    ))
+  def abc(x: Int, y: Int = 1): Int = {
+    x * y
+  }
 
-    var df = spark.createDataFrame(lr, schema)
-
-    df.show(false)
-
-
-
-    val prod = udf((f1: java.lang.Double) => {
-      if (null == f1) 100.0
-    })
-
-    df.withColumn("prod", prod($"f1")).show(false)
-
-
-
-
+  def abc(x: Double, y: Double): Double = {
+    x * y
   }
 
 }
