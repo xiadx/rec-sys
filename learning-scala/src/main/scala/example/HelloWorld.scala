@@ -1,5 +1,7 @@
 package example
 
+import scala.collection.mutable
+
 object HelloWorld {
 
   def main(args: Array[String]): Unit = {
@@ -19,6 +21,12 @@ object HelloWorld {
 //    println("abc".split(",").mkString(";"))
 
     val s = "农历九月十九\u0001观音菩萨出家日\u0001,祈福求平安"
+
+    val a: Array[String] = Array[String]("a", "b", "c")
+
+    var b: Array[String] = _
+
+    b = scala.util.Random.shuffle(a.toList).toArray
 
   }
 

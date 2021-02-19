@@ -232,7 +232,14 @@ object HelloWorld {
 //    })
 //
 //    df.withColumn("prod", prod($"f1")).show(false)
-    println(abc(1.0, 2.0))
+//    println(abc(1.0, 2.0))
+
+//    import spark.implicits._
+//    val al = Array("a", "b", "c")
+//    al.toSeq.toDF("tag").show()
+
+    val icols = Array("duration", "favorite", "reply", "vote")
+    println(icols.indices)
   }
 
   def abc(x: Int, y: Int = 1): Int = {
