@@ -18,7 +18,7 @@
         <scala.binary.version>2.11</scala.binary.version>
         <spark.version>2.4.1</spark.version>
         <hbase.version>1.2.0</hbase.version>
-        <hadoop.version>2.6.0</hadoop.version>
+        <hadoop.version>2.10.1</hadoop.version>
     </properties>
 
     <dependencies>
